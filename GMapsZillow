@@ -1,0 +1,152 @@
+<script>
+    window.onload = function(){
+    var anchors = document.getElementsByTagName('a');
+    for (var i=0; i<anchors.length; i++){
+      anchors[i].setAttribute('target', '_blank');
+    }
+  }
+      var ini;
+      var gAPI = document.querySelectorAll("p")[0].innerText;
+      var zAPI = document.querySelectorAll("p")[1].innerText;
+  </script>
+  
+  <script>  
+  var gScript = document.createElement('script');
+  gScript.src = "https://maps.googleapis.com/maps/api/js?key="+gAPI+"&libraries=places";
+  document.head.appendChild(gScript)
+   gScript.onload = function initMap() {
+          var centerCoordinates = new google.maps.LatLng(37.6, -95.665);
+          var map = new google.maps.Map(document.getElementById('map'), {
+              center: centerCoordinates,
+              zoom: 4
+          });
+          var card = document.getElementById('pac-card');
+          var input = document.getElementById('pac-input');
+          var infowindowContent = document.getElementById('infowindow-content');
+  
+          map.controls[google.maps.ControlPosition.TOP_RIGHT].push(card);
+  
+          var autocomplete = new google.maps.places.Autocomplete(input);
+          var infowindow = new google.maps.InfoWindow();
+          infowindow.setContent(infowindowContent);
+  
+          var marker = new google.maps.Marker({
+              map: map
+          });
+  
+          autocomplete.addListener('place_changed', function () {
+              document.getElementById("location-error").style.display = 'none';
+              infowindow.close();
+              marker.setVisible(false);
+              var place = autocomplete.getPlace();
+              if (!place.geometry) {
+                  document.getElementById("location-error").style.display = 'inline-block';
+                  document.getElementById("location-error").innerHTML = "Cannot Locate '" + input.value + "' on map";
+                  return;
+              }
+  
+              map.fitBounds(place.geometry.viewport);
+              marker.setPosition(place.geometry.location);
+              marker.setVisible(true);
+  
+              infowindowContent.children['place-icon'].src = place.icon;
+              infowindowContent.children['place-name'].textContent = place.name;
+              infowindowContent.children['place-address'].textContent = input.value;
+              infowindow.open(map, marker);
+          });
+      }
+   
+  </script>
+  
+  <script>
+      function numberWithCommas(x) {
+          return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+  </script>
+  
+  <script>
+      document.getElementById("RAWAD").onsubmit = function (e) {
+          e.preventDefault();  
+          document.getElementById("pac-card").classList.add("visualy-hidden");  
+          document.getElementById("pac-card").addEventListener('transitionend', function (e) {
+              document.getElementById("pac-card").classList.add('disabled');
+          })
+  
+          document.getElementById("street").classList.remove('disabled');
+          setTimeout(function () {
+              document.getElementById("street").classList.remove('visualy-hidden');
+          }, 100);
+        
+        
+             setTimeout(function() {
+          firstSlide.style.cssText = "transform: translate(-100% , 0); transition: all 0.3s ease-in;"
+          secoundSlide.style.cssText = "transform: translate(-100% , 0); transition: all 0.3s ease-in;"
+          thirdSlide.style.cssText = "transform: translate(-100% , 0); transition: all 0.3s ease-in;"
+      }, 1500)
+  
+  
+  
+  
+          ini = document.getElementById('pac-input').value;
+          var u = `<img src = "https://maps.googleapis.com/maps/api/streetview?size=600x300&location=${ini}&heading=151.78&pitch=-0.76&key=${gAPI}" style="max-width: 100%;" >`;
+          document.getElementById("street").innerHTML = u;
+          fillInvisibleAddress(ini);
+  
+          function fillInvisibleAddress(x) {
+              var address = document.querySelector('input[placeholder="Home Eval Address"]')
+              var e = document.createEvent('HTMLEvents');
+              e.initEvent('input', true, true);
+              setTimeout(function () {
+                  address.value = x;
+                  address.dispatchEvent(e);
+              },1000)
+          }
+  
+  
+  
+  
+  
+  
+          let url = `https://api.bridgedataoutput.com/api/v2/zestimates?access_token=${zAPI}&limit=1&fields=zestimate,upper,lower&near=${ini}`;
+          fetch(url)
+  
+              .then(response => response.json())
+  
+              .then(function (data) {
+  
+                  console.log(data.status);
+                  var low = document.getElementById("hvlow");
+                  var zes = document.getElementById("hvval");
+                  var upp = document.getElementById("hvhigh");
+                  var urlapi = document.getElementById("seemore");
+            
+               
+                  zes.innerHTML = "$" + numberWithCommas(data.bundle[0].zestimate); 
+                  low.innerHTML = "$" + numberWithCommas(data.bundle[0].lower);
+                  upp.innerHTML = "$" + numberWithCommas(data.bundle[0].upper);
+            
+            
+ 
+                       if ( data.bundle[0].lower == null || data.bundle[0].lower == "" || data.status != 200) {
+                      zes.innerHTML = "Please Try Another Address";
+                  }
+                  
+            
+           
+            
+                  urlapi.innerHTML = "<a href='https://www.zillow.com' target='_blank' >See more details for " + ini +" on Zillow </a>"
+  
+               
+              })
+  
+              .catch(function (err) {
+      document.getElementById("hvval").innerHTML = document.querySelectorAll("p")[2].innerText;
+         
+
+                  console.log('error: ' + err);
+  
+              });
+  
+      }
+  
+  </script>
